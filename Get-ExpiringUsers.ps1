@@ -1,0 +1,1 @@
+Get-QADUser -SearchRoot 'domain.local/OUName' -Enabled -PasswordNeverExpires:$false -SizeLimit 0 | Where-Object {$_.PasswordExpires -gt (Get-Date).AddDays(60).ToString("d") -and $_.PasswordExpires -le (Get-Date).AddDays(95).ToString("d")} | Select Name, PasswordExpires | sort-object PasswordExpires

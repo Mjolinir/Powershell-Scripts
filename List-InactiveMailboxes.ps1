@@ -1,0 +1,1 @@
+Get-MailboxServer | Get-MailboxStatistics | where {$_.Lastlogontime -lt (get-date).AddDays(-360) -and $_.Lastlogontime -ne $null} | Select displayName,LastLoggedOnUserAccount,LastLogonTime
