@@ -1,6 +1,6 @@
 
-#foreach($vmName in (Get-Cluster "SysOps Cluster" | Get-VM)){
-foreach($vmName in (Get-Folder Brian | Get-VM)){
+foreach($vmName in (Get-Cluster "Workgroups Systems" | Get-VM)){
+#foreach($vmName in (Get-Folder Banner | Get-VM)){
 
 $vm = Get-VM -Name $vmName
 $do = New-Object -TypeName VMware.Vim.VirtualMachineConfigSpec
