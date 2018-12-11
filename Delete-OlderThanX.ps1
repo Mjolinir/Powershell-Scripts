@@ -3,7 +3,10 @@ $Daysback = "-30"
  
 $CurrentDate = Get-Date
 $DatetoDelete = $CurrentDate.AddDays($Daysback)
-Get-ChildItem $Path | Where-Object { $_.LastWriteTime -lt $DatetoDelete }
+# Find files by last write time
+Get-ChildItem $Path | Where-Object { $_.LastWriteTime -lt $DatetoDelete } | Remove-Item
+# Or by file creation time
+#Get-ChildItem $Path | Where-Object { $_.CreationTime -lt $DatetoDelete } | Remove-Item
 
 
 
