@@ -1,5 +1,5 @@
 param(
-   [Parameter(Mandatory=$false)]
+   [Parameter(Mandatory=$true)]
    [ValidateNotNullOrEmpty()]
    [string] $vmHost
 )
