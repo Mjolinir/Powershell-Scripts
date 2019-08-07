@@ -1,7 +1,7 @@
 logs
 misc
 vCheck-UCS-master
-vCheck-vSphere-master
+vCheck-vSphere
 commands.txt
 Groups.txt
 IQN.txt
@@ -12,4 +12,4 @@ massmove.txt
 massmoveALL.txt
 out.csv
 servers.txt
-vCheck-vSphere-master-vcsa01
+vCheck-vSphere-vcenter03
