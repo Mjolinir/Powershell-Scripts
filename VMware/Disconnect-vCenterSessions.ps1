@@ -1,76 +1,32 @@
-$var = $args[0]
+$MinutesOld = $args[0]
 
-if ($var -eq $null -or $var -eq "") {
-	Write-Host -ForegroundColor "yellow" "Usage:  Disconnect-vCenterSessions.ps1 [Idle Time In Minutes]"
-	exit
+if ($MinutesOld -eq $null -or $var -eq "") {
+        Write-Host -ForegroundColor "yellow" "Usage:  Disconnect-vCenterSessions.ps1 [Idle Time In Minutes]"
+        exit
 }
 
-Function Get-ViSession {
-<#
-.SYNOPSIS
-Lists vCenter Sessions.
+#$ServiceInstance = Get-View ServiceInstance 
+#$SessionManager = Get-View $ServiceInstance.Content.SessionManager 
+#$SessionManager.SessionList | Where {$_.LastActiveTime -lt (Get-Date).AddMinutes(-$MinutesOld)} | %{$SessionManager.TerminateSession($_.Key)}
 
-.DESCRIPTION
-Lists all connected vCenter Sessions.
+$intOlderThan = $MinutesOld
+$serviceInstance = Get-View 'ServiceInstance'
+## get the session manager object
+$sessMgr = Get-View $serviceInstance.Content.sessionManager
+## array to hold info about stale sessions
+$oldSessions = @()
+foreach ($sess in $sessMgr.SessionList){
+    if (($sess.LastActiveTime).addminutes($intOlderThan).ToLocalTime() -lt (Get-Date) -and
+          $sess.Key -ne $sessMgr.CurrentSession.Key){
+        $oldSessions += $sess.Key
+    } ## end if
+} ## end foreach
 
-.EXAMPLE
-PS C:\> Get-VISession
+## if there are any old sessions, terminate them; else, just write message to the Warning stream
+if (($oldSessions | Measure-Object).Count -gt 0) {
+    ## Terminate sessions than are idle for longer than approved ($intOlderThan)
+    write-host "Killing:" $oldSessions.count "sessions"
+    $sessMgr.TerminateSession($oldSessions)
+} ## end if
+else {Write-Warning "No sessions that have been idle for more than '$intOlderThan' minutes; no action taken"} 
 
-.EXAMPLE
-PS C:\> Get-VISession | Where { $_.IdleMinutes -gt 720 }
-#>
-$SessionMgr = Get-View $DefaultViserver.ExtensionData.Client.ServiceContent.SessionManager
-$AllSessions = @()
-$SessionMgr.SessionList | Foreach {
-	$Session = New-Object -TypeName PSObject -Property @{
-	Key = $_.Key
-	UserName = $_.UserName
-	FullName = $_.FullName
-	LoginTime = ($_.LoginTime).ToLocalTime()
-	LastActiveTime = ($_.LastActiveTime).ToLocalTime()
-		}
-	
-	If ($_.Key -eq $SessionMgr.CurrentSession.Key) {
-		$Session | Add-Member -MemberType NoteProperty -Name Status -Value “Current Session”
-		} Else {
-		$Session | Add-Member -MemberType NoteProperty -Name Status -Value “Idle”
-		}
-
-	$Session | Add-Member -MemberType NoteProperty -Name IdleMinutes -Value ([Math]::Round(((Get-Date) – ($_.LastActiveTime).ToLocalTime()).TotalMinutes))
-	$AllSessions += $Session
-	}
-	$AllSessions
-}
-
-Function Disconnect-ViSession {
-<#
-.SYNOPSIS
-Disconnects a connected vCenter Session.
-
-.DESCRIPTION
-Disconnects a open connected vCenter Session.
-
-.PARAMETER  SessionList
-A session or a list of sessions to disconnect.
-
-.EXAMPLE
-PS C:\> Get-VISession | Where { $_.IdleMinutes -gt 720 } | Disconnect-ViSession
-
-.EXAMPLE
-PS C:\> Get-VISession | Where { $_.Username -eq “User19” } | Disconnect-ViSession
-#>
-[CmdletBinding()]
-Param (
-[Parameter(ValueFromPipeline=$true)]
-$SessionList
-)
-Process {
-	$SessionMgr = Get-View $DefaultViserver.ExtensionData.Client.ServiceContent.SessionManager
-	$SessionList | Foreach {
-	Write “Disconnecting Session for $($_.Username) which has been active since $($_.LoginTime)”
-	$SessionMgr.TerminateSession($_.Key)
-		}
-	}
-}
-
-Get-ViSession | Where { $_.IdleMinutes -gt $var } | Disconnect-ViSession
