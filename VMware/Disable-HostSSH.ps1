@@ -5,4 +5,4 @@ if ($hostName -eq $null -or $hostName -eq "") {
 exit
 }
 
-Get-VMHost $hostName | ForEach-Object {Stop-VMHostService -HostService ($_ | Get-VMHostService | Where-Object {$_.Key -eq “TSM-SSH”}) -Confirm:$false}
+Get-VMHost $hostName | ForEach-Object {Stop-VMHostService -HostService ($_ | Get-VMHostService | Where-Object {$_.Key -eq "TSM-SSH"}) -Confirm:$false}
